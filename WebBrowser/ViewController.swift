@@ -12,6 +12,7 @@ import WebKit
 class ViewController: UIViewController,
     WKNavigationDelegate {
     var webView: WKWebView!
+    var progressView: UIProgressView!
     
     override func loadView() {
         webView = WKWebView()
@@ -28,6 +29,20 @@ class ViewController: UIViewController,
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Open", style: .plain, target: self, action: #selector(openTapped))
        
+        let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil) //which creates a flexible space. It doesn't need a target or action because it can't be tapped
+        let refresh = UIBarButtonItem(barButtonSystemItem: .refresh, target: webView, action: #selector(webView.reload)) // it's calling the reload() method on the web view rather than using a method of our own
+        
+        progressView = UIProgressView(progressViewStyle: .default)
+        progressView.sizeToFit()
+        let progressButton = UIBarButtonItem(customView: progressView)
+        
+        toolbarItems = [progressButton, spacer, refresh]
+        navigationController?.isToolbarHidden = false
+        
+        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
+        /*  #keyPath allows the compiler to check that your code is correct
+         in more complex applications, all calls to addObserver() should be matched with a call to removeObserver() when you're finished observing */
+        
         let url = URL(string: "https://github.com/ssemaatopcu")!
         webView.load(URLRequest(url: url)) //it creates a new URLRequest object from that URL, and gives it to our web view to load
         webView.allowsBackForwardNavigationGestures = true //allows users to swipe from the left or right edge to move backward or forward in their web browsing
@@ -53,6 +68,12 @@ class ViewController: UIViewController,
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         title = webView.title
+    }
+    
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "estimatedProgress" {
+               progressView.progress = Float(webView.estimatedProgress)
+           }
     }
 }
 
