@@ -13,6 +13,7 @@ class ViewController: UIViewController,
     WKNavigationDelegate {
     var webView: WKWebView!
     var progressView: UIProgressView!
+    var websites = ["github.com/bahasobucovali", "github.com/ssemaatopcu", "linkedin.com/in/sema-topcu-7a73a91b8/?originalSubdomain=tr", "linkedin.com/in/melih-baha-söbücovalı-8339931b3/"]
     
     override func loadView() {
         webView = WKWebView()
@@ -43,17 +44,18 @@ class ViewController: UIViewController,
         /*  #keyPath allows the compiler to check that your code is correct
          in more complex applications, all calls to addObserver() should be matched with a call to removeObserver() when you're finished observing */
         
-        let url = URL(string: "https://github.com/ssemaatopcu")!
+        let url = URL(string: "https://" + webSites[0])!
         webView.load(URLRequest(url: url)) //it creates a new URLRequest object from that URL, and gives it to our web view to load
         webView.allowsBackForwardNavigationGestures = true //allows users to swipe from the left or right edge to move backward or forward in their web browsing
     }
 
     @objc func openTapped() {
         let ac = UIAlertController(title: "Open page...", message: nil, preferredStyle: .actionSheet)
-        ac.addAction(UIAlertAction(title: "github.com/bahasobucovali", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "github.com/ssemaatopcu", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "linkedin.com/in/sema-topcu-7a73a91b8/?originalSubdomain=tr", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "linkedin.com/in/melih-baha-söbücovalı-8339931b3/", style: .default, handler: openPage))
+       
+        for webSite in websites {
+            ac.addAction(UIAlertAction(title: website, style: .default, handler: openPage))
+        }
+       
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         ac.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         present(ac, animated: true)
@@ -75,5 +77,21 @@ class ViewController: UIViewController,
                progressView.progress = Float(webView.estimatedProgress)
            }
     }
+    
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        let url = navigationAction.request.url
+        
+        if let host = url?.host {
+               for website in websites {
+                   if host.contains(website) {
+                       decisionHandler(.allow)
+                       return
+                   }
+               }
+           }
+
+           decisionHandler(.cancel)
+       }
+        
 }
 
